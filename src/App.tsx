@@ -2,7 +2,7 @@ import { EchoSignIn, useEcho, EchoTokenPurchase } from '@merit-systems/echo-reac
 import AIComponent from './AIComponent';
 
 function App() {
-    const { isAuthenticated, user, balance, signOut } = useEcho();
+    const { isAuthenticated, user, signOut } = useEcho();
 
     return (
         <div className="min-h-screen bg-white">
@@ -19,12 +19,14 @@ function App() {
 
                     <div className="flex items-center gap-5">
                         <EchoTokenPurchase />
-                        <button
-                            onClick={signOut}
-                            className="border border-black px-2 py-1 text-sm cursor-pointer bg-white rounded-md"
-                        >
-                            Sign Out
-                        </button>
+                        {user && (
+                            <button
+                                onClick={signOut}
+                                className="border border-black px-2 py-1 text-sm cursor-pointer bg-white rounded-md"
+                            >
+                                Sign Out
+                            </button>
+                        )}
                     </div>
                 </div>
             </header>
@@ -34,9 +36,10 @@ function App() {
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center">
                         <div className="text-6xl mb-5">🔒</div>
                         <h2 className="mb-2 text-lg">Authentication Required</h2>
-                        <p>
+                        <p className="mb-4">
                             Please sign in to start editing your images with AI
                         </p>
+                        {!user && <EchoSignIn />}
                     </div>
                 ) : (
                     <AIComponent />
