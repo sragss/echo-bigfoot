@@ -19,6 +19,7 @@ export default function AIComponent() {
     const [modalImage, setModalImage] = useState<string | null>(null);
     const [loadingProgress, setLoadingProgress] = useState(0);
     const [showLoadingBar, setShowLoadingBar] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     
     const { google } = useEchoModelProviders();
 
@@ -116,6 +117,7 @@ export default function AIComponent() {
 
         setIsEditingImages(true);
         setEditedImages([]);
+        setErrorMessage(null); // Clear any previous errors
         setShowLoadingBar(true);
         setLoadingProgress(0);
         
@@ -149,6 +151,10 @@ export default function AIComponent() {
             clearInterval(progressInterval);
             setShowLoadingBar(false);
             setLoadingProgress(0);
+            
+            // Set user-friendly error message
+            const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred while editing your images. Please try again.';
+            setErrorMessage(errorMsg);
         } finally {
             setIsEditingImages(false);
         }
@@ -268,6 +274,24 @@ export default function AIComponent() {
                         ))}
                         {/* Show upload area at end if there are images */}
                         <UploadArea />
+                    </div>
+                </div>
+            )}
+
+            {/* Error Display */}
+            {errorMessage && (
+                <div className="border border-black bg-red-50 p-4 mb-8">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h3 className="text-lg mb-2">Error</h3>
+                            <p className="text-sm">{errorMessage}</p>
+                        </div>
+                        <button
+                            onClick={() => setErrorMessage(null)}
+                            className="border border-black bg-white w-6 h-6 cursor-pointer text-sm flex items-center justify-center"
+                        >
+                            ×
+                        </button>
                     </div>
                 </div>
             )}

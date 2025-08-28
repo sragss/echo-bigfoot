@@ -52,6 +52,18 @@ export const editImages = async (files: File[], prompt: string, googleProvider: 
         return processAIResponse(result);
     } catch (error) {
         console.error('Error editing images:', error);
-        return [];
+        
+        // Check for content moderation issues
+        if (error instanceof Error && error.message.includes('PROHIBITED_CONTENT')) {
+            throw new Error('Content was blocked by safety filters. Please try a different image or prompt.');
+        }
+        
+        // Check for invalid JSON response
+        if (error instanceof Error && error.message.includes('Invalid JSON response')) {
+            throw new Error('The AI service returned an invalid response. Please try again in a moment.');
+        }
+        
+        // Re-throw the error so it can be caught by the component
+        throw error;
     }
 };
