@@ -125,6 +125,39 @@ export default function AIComponent() {
         }
     };
 
+    const addEditedToInput = async () => {
+        const newImages: UploadedImage[] = [];
+        
+        for (let i = 0; i < editedImages.length; i++) {
+            const imageUrl = editedImages[i];
+            try {
+                // Fetch the blob from the object URL
+                const response = await fetch(imageUrl);
+                const blob = await response.blob();
+                
+                // Create a File object from the blob
+                const file = new File([blob], `edited-image-${i + 1}.png`, { type: blob.type });
+                
+                // Create new UploadedImage object
+                const uploadedImage: UploadedImage = {
+                    file,
+                    url: imageUrl, // Keep the same URL since it's already created
+                    id: Math.random().toString(36).substring(7)
+                };
+                
+                newImages.push(uploadedImage);
+            } catch (error) {
+                console.error(`Error converting edited image ${i + 1}:`, error);
+            }
+        }
+        
+        // Add new images to uploaded images
+        setUploadedImages(prev => [...prev, ...newImages]);
+        
+        // Clear edited results
+        setEditedImages([]);
+    };
+
     return (
         <div className="w-full p-5">
             {/* Drag & Drop Upload Area */}
@@ -230,7 +263,7 @@ export default function AIComponent() {
                     <h3 className="mb-5 text-lg">
                         Edited Results ({editedImages.length})
                     </h3>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5 mb-5">
                         {editedImages.map((imageUrl, index) => (
                             <div key={index} className="text-center">
                                 <img
@@ -242,6 +275,13 @@ export default function AIComponent() {
                             </div>
                         ))}
                     </div>
+                    <button
+                        onClick={addEditedToInput}
+                        title="Add to Input"
+                        className="w-8 h-8 border border-black cursor-pointer bg-white flex items-center justify-center text-lg"
+                    >
+                        +
+                    </button>
                 </div>
             )}
 

@@ -13,4 +13,4 @@ pnpm install
 pnpm dev
 ```
 
-To point revenue at your own app go to [echo.merit.systems](https://echo.merit.systems/), create a new app, and replace the `VITE_ECHO_APP` in `.env`.
+To point revenue at your own app go to [echo.merit.systems](https://echo.merit.systems/), create a new app, and replace the `VITE_ECHO_APP_ID` in `.env`.
