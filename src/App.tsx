@@ -10,7 +10,7 @@ function App() {
                 <div className="flex justify-between items-center">
                     <div>
                         <h1 className="text-lg">
-                            Echo Image Editor
+                            Banana Editor
                         </h1>
                         <p className="text-sm">
                             Edit your images with AI-powered tools

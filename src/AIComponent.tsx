@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useEchoModelProviders } from '@merit-systems/echo-react-sdk';
 import { editImages } from './imageHelpers';
+import { Upload, Plus } from 'lucide-react';
 
 interface UploadedImage {
     file: File;
@@ -186,37 +187,58 @@ export default function AIComponent() {
         setEditedImages([]);
     };
 
+    const UploadArea = () => (
+        <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`
+                relative aspect-square w-[200px] border border-dashed border-black text-center cursor-pointer group
+                ${isDragOver ? 'bg-gray-100' : 'bg-white'}
+            `}
+        >
+            <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="hidden"
+                id="file-upload"
+            />
+            <label
+                htmlFor="file-upload"
+                className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer"
+            >
+                <div className="flex flex-col items-center justify-center h-full">
+                    <div className="relative mb-2">
+                        <Plus 
+                            size={24} 
+                            className="opacity-100 group-hover:opacity-0 transition-opacity duration-200" 
+                        />
+                        <Upload 
+                            size={24} 
+                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200" 
+                        />
+                    </div>
+                    <p className="text-sm px-2 mb-1">
+                        Add Images
+                    </p>
+                    <p className="text-xs px-2 opacity-60">
+                        Paste, Drag or Click
+                    </p>
+                </div>
+            </label>
+        </div>
+    );
+
     return (
         <div className="w-full p-5">
-            {/* Drag & Drop Upload Area */}
-            <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`
-                    border border-dashed border-black p-10 text-center mb-8
-                    ${isDragOver ? 'bg-gray-100' : 'bg-white'}
-                `}
-            >
-                <div className="text-2xl mb-2">📸</div>
-                <p className="mb-2">
-                    Drag & drop images here, paste with Cmd+V, or click to select
-                </p>
-                <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="file-upload"
-                />
-                <label
-                    htmlFor="file-upload"
-                    className="inline-block px-3 py-1 border border-black cursor-pointer bg-blue-600 text-white"
-                >
-                    Choose Images
-                </label>
-            </div>
+            {/* Show upload area first if no images */}
+            {uploadedImages.length === 0 && (
+                <div className="mb-8">
+                    <UploadArea />
+                </div>
+            )}
 
             {/* Uploaded Images Grid */}
             {uploadedImages.length > 0 && (
@@ -244,6 +266,8 @@ export default function AIComponent() {
                                 </p>
                             </div>
                         ))}
+                        {/* Show upload area at end if there are images */}
+                        <UploadArea />
                     </div>
                 </div>
             )}

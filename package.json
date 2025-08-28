@@ -13,6 +13,7 @@
     "@merit-systems/echo-react-sdk": "^1.0.16",
     "@tailwindcss/postcss": "^4.1.12",
     "ai": "^5.0.27",
+    "lucide-react": "^0.542.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
