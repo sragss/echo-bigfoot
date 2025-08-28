@@ -1,5 +1,5 @@
 # Echo Nano Banana
-Minimal lines-of-code to monetize apps calling Google's new Nano Banana model.
+Change 5 lines-of-code to create monetized Nano Banana apps.
 
 ![Example](imgs/ex.png)
 

@@ -29,7 +29,7 @@ export const editImages = async (files: File[], prompt: string, googleProvider: 
         
         // Create content array with all images and the prompt
         const content = [
-            ...base64Images.map((base64, index) => ({ 
+            ...base64Images.map((base64) => ({ 
                 type: 'image' as const, 
                 image: base64 
             })),

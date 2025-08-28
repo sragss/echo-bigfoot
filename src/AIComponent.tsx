@@ -16,6 +16,8 @@ export default function AIComponent() {
     const [isEditingImages, setIsEditingImages] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
     const [modalImage, setModalImage] = useState<string | null>(null);
+    const [loadingProgress, setLoadingProgress] = useState(0);
+    const [showLoadingBar, setShowLoadingBar] = useState(false);
     
     const { google } = useEchoModelProviders();
 
@@ -113,13 +115,39 @@ export default function AIComponent() {
 
         setIsEditingImages(true);
         setEditedImages([]);
+        setShowLoadingBar(true);
+        setLoadingProgress(0);
+        
+        // Start simulated progress animation
+        const progressInterval = setInterval(() => {
+            setLoadingProgress(prev => {
+                if (prev < 90) {
+                    return prev + Math.random() * 2 + 1; // Random progress between 1-3% per step
+                }
+                return 90; // Stop at 90%
+            });
+        }, 400);
         
         try {
             const files = uploadedImages.map(img => img.file);
             const editedImageUrls = await editImages(files, editPrompt, google);
-            setEditedImages(editedImageUrls);
+            
+            // Clear the interval and finish the progress bar
+            clearInterval(progressInterval);
+            setLoadingProgress(100);
+            
+            // Wait a moment to show completion, then hide
+            setTimeout(() => {
+                setEditedImages(editedImageUrls);
+                setShowLoadingBar(false);
+                setLoadingProgress(0);
+            }, 500);
+            
         } catch (error) {
             console.error('Image editing error:', error);
+            clearInterval(progressInterval);
+            setShowLoadingBar(false);
+            setLoadingProgress(0);
         } finally {
             setIsEditingImages(false);
         }
@@ -282,6 +310,18 @@ export default function AIComponent() {
                     >
                         +
                     </button>
+                </div>
+            )}
+
+            {/* Loading Bar */}
+            {showLoadingBar && (
+                <div className="fixed top-0 left-0 right-0 z-50">
+                    <div className="h-1 bg-gray-200">
+                        <div 
+                            className="h-full bg-black transition-all duration-300 ease-out"
+                            style={{ width: `${loadingProgress}%` }}
+                        />
+                    </div>
                 </div>
             )}
 
