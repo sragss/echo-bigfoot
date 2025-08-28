@@ -12,7 +12,7 @@ interface UploadedImage {
 
 export default function AIComponent() { 
     const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-    const [editPrompt, setEditPrompt] = useState("Make the image more vibrant and add dramatic lighting");
+    const [editPrompt, setEditPrompt] = useState("");
     const [editedImages, setEditedImages] = useState<string[]>([]);
     const [isEditingImages, setIsEditingImages] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
