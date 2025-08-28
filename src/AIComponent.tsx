@@ -133,15 +133,12 @@ export default function AIComponent() {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 className={`
-                    border-2 border-dashed rounded-xl p-10 text-center mb-8 transition-all duration-300 ease-in-out
-                    ${isDragOver 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-300 bg-gray-50'
-                    }
+                    border border-dashed border-black p-10 text-center mb-8
+                    ${isDragOver ? 'bg-gray-100' : 'bg-white'}
                 `}
             >
-                <div className="text-2xl mb-2.5">📸</div>
-                <p className="text-lg mb-2.5 text-gray-700">
+                <div className="text-2xl mb-2">📸</div>
+                <p className="mb-2">
                     Drag & drop images here, paste with Cmd+V, or click to select
                 </p>
                 <input
@@ -154,7 +151,7 @@ export default function AIComponent() {
                 />
                 <label
                     htmlFor="file-upload"
-                    className="inline-block px-5 py-2.5 bg-blue-600 text-white rounded-md cursor-pointer text-base hover:bg-blue-700 transition-colors"
+                    className="inline-block px-3 py-1 border border-black cursor-pointer bg-blue-600 text-white"
                 >
                     Choose Images
                 </label>
@@ -163,7 +160,7 @@ export default function AIComponent() {
             {/* Uploaded Images Grid */}
             {uploadedImages.length > 0 && (
                 <div className="mb-8">
-                    <h3 className="mb-4 text-xl font-semibold text-gray-800">
+                    <h3 className="mb-4 text-lg">
                         Uploaded Images ({uploadedImages.length})
                     </h3>
                     <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 mb-5">
@@ -172,16 +169,16 @@ export default function AIComponent() {
                                 <img
                                     src={image.url}
                                     alt={image.file.name}
-                                    className="w-full h-50 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
+                                    className="w-full h-50 object-cover border border-black cursor-pointer"
                                     onClick={() => setModalImage(image.url)}
                                 />
                                 <button
                                     onClick={() => removeImage(image.id)}
-                                    className="absolute top-1 right-1 bg-white/90 border-0 rounded-full w-7 h-7 cursor-pointer text-base hover:bg-white transition-colors flex items-center justify-center"
+                                    className="absolute top-1 right-1 bg-white border border-black w-6 h-6 cursor-pointer text-sm flex items-center justify-center"
                                 >
                                     ×
                                 </button>
-                                <p className="mt-1 text-xs text-gray-600 text-center overflow-hidden text-ellipsis whitespace-nowrap">
+                                <p className="mt-1 text-xs text-center overflow-hidden text-ellipsis whitespace-nowrap">
                                     {image.file.name}
                                 </p>
                             </div>
@@ -192,22 +189,22 @@ export default function AIComponent() {
 
             {/* Edit Controls */}
             {uploadedImages.length > 0 && (
-                <div className="bg-gray-100 p-6 rounded-xl mb-8">
-                    <h3 className="mb-4 text-lg font-semibold text-gray-800">Edit Instructions</h3>
+                <div className="border border-black p-6 mb-8">
+                    <h3 className="mb-4 text-lg">Edit Instructions</h3>
                     <textarea
                         value={editPrompt}
                         onChange={(e) => setEditPrompt(e.target.value)}
                         placeholder="Describe how you want to edit your images..."
-                        className="w-full h-20 p-3 border border-gray-300 rounded-lg text-base mb-4 resize-y font-inherit focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full h-20 p-3 border border-black mb-4 resize-y focus:outline-none"
                     />
                     <button
                         onClick={handleImageEdit}
                         disabled={isEditingImages || uploadedImages.length === 0}
                         className={`
-                            px-6 py-3 text-white border-0 rounded-lg text-base font-semibold transition-colors
+                            px-3 py-2 border border-black cursor-pointer
                             ${uploadedImages.length > 0 && !isEditingImages 
-                                ? 'bg-green-600 cursor-pointer hover:bg-green-700' 
-                                : 'bg-gray-400 cursor-not-allowed'
+                                ? 'bg-blue-600 text-white' 
+                                : 'bg-gray-300 text-gray-500'
                             }
                         `}
                     >
@@ -222,7 +219,7 @@ export default function AIComponent() {
             {/* Edited Results */}
             {editedImages.length > 0 && (
                 <div>
-                    <h3 className="mb-5 text-xl font-semibold text-gray-800">
+                    <h3 className="mb-5 text-lg">
                         Edited Results ({editedImages.length})
                     </h3>
                     <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
@@ -231,7 +228,7 @@ export default function AIComponent() {
                                 <img
                                     src={imageUrl}
                                     alt={`Edited image ${index + 1}`}
-                                    className="w-full h-auto max-h-96 object-contain rounded-lg border border-gray-300 shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+                                    className="w-full h-auto max-h-96 object-contain border border-black cursor-pointer"
                                     onClick={() => setModalImage(imageUrl)}
                                 />
                             </div>
@@ -250,12 +247,12 @@ export default function AIComponent() {
                         <img
                             src={modalImage}
                             alt="Full size view"
-                            className="max-w-full max-h-full object-contain rounded-lg"
+                            className="max-w-full max-h-full object-contain border border-black"
                             onClick={(e) => e.stopPropagation()}
                         />
                         <button
                             onClick={() => setModalImage(null)}
-                            className="absolute top-2 right-2 bg-white/90 border-0 rounded-full w-8 h-8 cursor-pointer text-lg hover:bg-white transition-colors flex items-center justify-center font-bold"
+                            className="absolute top-2 right-2 bg-white border border-black w-8 h-8 cursor-pointer text-lg flex items-center justify-center"
                         >
                             ×
                         </button>

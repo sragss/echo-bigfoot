@@ -5,14 +5,14 @@ function App() {
     const { isAuthenticated, user, balance, signOut } = useEcho();
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b border-gray-200 py-4 shadow-sm">
-                <div className="w-full flex justify-between items-center px-5">
+        <div className="min-h-screen bg-white">
+            <header className="border-b border-black px-5 py-4">
+                <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="m-0 text-2xl font-semibold text-gray-800">
+                        <h1 className="text-lg">
                             Echo Image Editor
                         </h1>
-                        <p className="mt-1 text-sm text-gray-600">
+                        <p className="text-sm">
                             Edit your images with AI-powered tools
                         </p>
                     </div>
@@ -20,25 +20,25 @@ function App() {
                     <div className="flex items-center gap-5">
                         {!isAuthenticated ? (
                             <div className="flex flex-col items-center gap-2">
-                                <span className="text-sm text-gray-600">Sign in to continue</span>
+                                <span className="text-sm">Sign in to continue</span>
                                 <EchoSignIn />
                             </div>
                         ) : (
                             <div className="flex items-center gap-5">
                                 <div className="text-right">
-                                    <p className="mb-1 text-base font-medium text-gray-800">
+                                    <p>
                                         {user?.name || 'User'}
                                     </p>
-                                    <p className="mb-1 text-sm text-gray-600">
+                                    <p className="text-sm">
                                         {user?.email}
                                     </p>
-                                    <p className="text-sm text-green-600 font-medium">
+                                    <p className="text-sm">
                                         Balance: ${balance?.balance || '0.00'}
                                     </p>
                                 </div>
                                 <button
                                     onClick={signOut}
-                                    className="px-4 py-2 bg-red-600 text-white border-0 rounded-md text-sm cursor-pointer font-medium hover:bg-red-700 transition-colors"
+                                    className="border border-black px-2 py-1 text-sm cursor-pointer bg-white"
                                 >
                                     Sign Out
                                 </button>
@@ -52,8 +52,8 @@ function App() {
                 {!isAuthenticated ? (
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center">
                         <div className="text-6xl mb-5">🔒</div>
-                        <h2 className="text-gray-800 mb-2.5 text-2xl">Authentication Required</h2>
-                        <p className="text-gray-600 text-lg">
+                        <h2 className="mb-2 text-lg">Authentication Required</h2>
+                        <p>
                             Please sign in to start editing your images with AI
                         </p>
                     </div>
