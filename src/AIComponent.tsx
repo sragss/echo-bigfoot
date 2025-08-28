@@ -194,7 +194,15 @@ export default function AIComponent() {
                     <textarea
                         value={editPrompt}
                         onChange={(e) => setEditPrompt(e.target.value)}
-                        placeholder="Describe how you want to edit your images..."
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                                e.preventDefault();
+                                if (uploadedImages.length > 0 && !isEditingImages) {
+                                    handleImageEdit();
+                                }
+                            }
+                        }}
+                        placeholder="Describe how you want to edit your images... (Cmd+Enter to generate)"
                         className="w-full h-20 p-3 border border-black mb-4 resize-y focus:outline-none"
                     />
                     <button

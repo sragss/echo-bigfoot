@@ -1,4 +1,4 @@
-import { EchoSignIn, useEcho } from '@merit-systems/echo-react-sdk';
+import { EchoSignIn, useEcho, EchoTokenPurchase } from '@merit-systems/echo-react-sdk';
 import AIComponent from './AIComponent';
 
 function App() {
@@ -18,32 +18,13 @@ function App() {
                     </div>
 
                     <div className="flex items-center gap-5">
-                        {!isAuthenticated ? (
-                            <div className="flex flex-col items-center gap-2">
-                                <span className="text-sm">Sign in to continue</span>
-                                <EchoSignIn />
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-5">
-                                <div className="text-right">
-                                    <p>
-                                        {user?.name || 'User'}
-                                    </p>
-                                    <p className="text-sm">
-                                        {user?.email}
-                                    </p>
-                                    <p className="text-sm">
-                                        Balance: ${balance?.balance || '0.00'}
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={signOut}
-                                    className="border border-black px-2 py-1 text-sm cursor-pointer bg-white"
-                                >
-                                    Sign Out
-                                </button>
-                            </div>
-                        )}
+                        <EchoTokenPurchase />
+                        <button
+                            onClick={signOut}
+                            className="border border-black px-2 py-1 text-sm cursor-pointer bg-white rounded-md"
+                        >
+                            Sign Out
+                        </button>
                     </div>
                 </div>
             </header>
