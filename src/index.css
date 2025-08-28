@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+/* Fix for iOS Safari viewport height issues */
+:root {
+  --vh: 1vh;
+}
+
 body {
   margin: 0;
+}
+
+/* Mobile viewport fix for iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Fallback for older iOS versions */
+.min-h-screen-ios {
+  min-height: calc(var(--vh, 1vh) * 100);
 }

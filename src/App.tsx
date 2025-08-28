@@ -1,8 +1,26 @@
 import { EchoSignIn, useEcho, EchoTokenPurchase } from '@merit-systems/echo-react-sdk';
+import { useEffect } from 'react';
 import AIComponent from './AIComponent';
 
 function App() {
     const { isAuthenticated, user, signOut } = useEcho();
+
+    // Fix iOS Safari viewport height issues
+    useEffect(() => {
+        const setVH = () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        return () => {
+            window.removeEventListener('resize', setVH);
+            window.removeEventListener('orientationchange', setVH);
+        };
+    }, []);
 
     return (
         <div className="min-h-screen bg-white">

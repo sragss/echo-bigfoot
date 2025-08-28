@@ -364,7 +364,7 @@ export default function AIComponent() {
             {/* Loading Bar */}
             {showLoadingBar && (
                 <div className="fixed top-0 left-0 right-0 z-50">
-                    <div className="h-1 bg-gray-200">
+                    <div className="h-2 sm:h-1 bg-gray-200">
                         <div 
                             className="h-full bg-black transition-all duration-300 ease-out"
                             style={{ width: `${loadingProgress}%` }}
