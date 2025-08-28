@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
-import { generateText } from 'ai';
+import { useState, useCallback, useEffect } from 'react';
 import { useEchoModelProviders } from '@merit-systems/echo-react-sdk';
+import { editImages } from './imageHelpers';
 
 interface UploadedImage {
     file: File;
@@ -8,12 +8,14 @@ interface UploadedImage {
     id: string;
 }
 
+
 export default function AIComponent() { 
     const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
     const [editPrompt, setEditPrompt] = useState("Make the image more vibrant and add dramatic lighting");
     const [editedImages, setEditedImages] = useState<string[]>([]);
     const [isEditingImages, setIsEditingImages] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
+    const [modalImage, setModalImage] = useState<string | null>(null);
     
     const { google } = useEchoModelProviders();
 
@@ -63,6 +65,46 @@ export default function AIComponent() {
         }
     }, [addImages]);
 
+    const handlePaste = useCallback((e: ClipboardEvent) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        const imageFiles: File[] = [];
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.type.startsWith('image/')) {
+                const file = item.getAsFile();
+                if (file) {
+                    imageFiles.push(file);
+                }
+            }
+        }
+
+        if (imageFiles.length > 0) {
+            addImages(imageFiles);
+        }
+    }, [addImages]);
+
+    useEffect(() => {
+        document.addEventListener('paste', handlePaste);
+        return () => {
+            document.removeEventListener('paste', handlePaste);
+        };
+    }, [handlePaste]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && modalImage) {
+                setModalImage(null);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [modalImage]);
+
     const handleImageEdit = async () => {
         if (uploadedImages.length === 0) {
             alert('Please upload at least one image first');
@@ -73,53 +115,9 @@ export default function AIComponent() {
         setEditedImages([]);
         
         try {
-            // Process all uploaded images
-            const allEditedUrls: string[] = [];
-            
-            for (const uploadedImage of uploadedImages) {
-                // Convert File to base64 for the AI model
-                const base64 = await new Promise<string>((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.readAsDataURL(uploadedImage.file);
-                });
-
-                const result = await generateText({
-                    model: await google('gemini-2.5-flash-image-preview'),
-                    messages: [
-                        {
-                            role: 'user',
-                            content: [
-                                { type: 'image', image: base64 },
-                                { type: 'text', text: editPrompt }
-                            ]
-                        }
-                    ],
-                    providerOptions: {
-                        google: { responseModalities: ['TEXT', 'IMAGE'] },
-                    },
-                });
-
-                if (result.text) {
-                    console.log(`Edit response text for ${uploadedImage.file.name}:`, result.text);
-                }
-
-                const imageFiles = result.files?.filter((f) =>
-                    f.mediaType?.startsWith('image/'),
-                ) || [];
-
-                if (imageFiles.length > 0) {
-                    const imageUrls = imageFiles.map(file => {
-                        const blob = new Blob([file.uint8Array], { type: file.mediaType });
-                        return URL.createObjectURL(blob);
-                    });
-                    allEditedUrls.push(...imageUrls);
-                }
-
-                console.log(`Edit Usage for ${uploadedImage.file.name}:`, JSON.stringify(result.usage, null, 2));
-            }
-            
-            setEditedImages(allEditedUrls);
+            const files = uploadedImages.map(img => img.file);
+            const editedImageUrls = await editImages(files, editPrompt, google);
+            setEditedImages(editedImageUrls);
         } catch (error) {
             console.error('Image editing error:', error);
         } finally {
@@ -144,7 +142,7 @@ export default function AIComponent() {
             >
                 <div className="text-2xl mb-2.5">📸</div>
                 <p className="text-lg mb-2.5 text-gray-700">
-                    Drag & drop images here, or click to select
+                    Drag & drop images here, paste with Cmd+V, or click to select
                 </p>
                 <input
                     type="file"
@@ -174,7 +172,8 @@ export default function AIComponent() {
                                 <img
                                     src={image.url}
                                     alt={image.file.name}
-                                    className="w-full h-50 object-cover rounded-lg border border-gray-300"
+                                    className="w-full h-50 object-cover rounded-lg border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => setModalImage(image.url)}
                                 />
                                 <button
                                     onClick={() => removeImage(image.id)}
@@ -232,10 +231,34 @@ export default function AIComponent() {
                                 <img
                                     src={imageUrl}
                                     alt={`Edited image ${index + 1}`}
-                                    className="w-full h-auto max-h-96 object-contain rounded-lg border border-gray-300 shadow-md"
+                                    className="w-full h-auto max-h-96 object-contain rounded-lg border border-gray-300 shadow-md cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => setModalImage(imageUrl)}
                                 />
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Image Modal */}
+            {modalImage && (
+                <div 
+                    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+                    onClick={() => setModalImage(null)}
+                >
+                    <div className="relative max-w-full max-h-full">
+                        <img
+                            src={modalImage}
+                            alt="Full size view"
+                            className="max-w-full max-h-full object-contain rounded-lg"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                        <button
+                            onClick={() => setModalImage(null)}
+                            className="absolute top-2 right-2 bg-white/90 border-0 rounded-full w-8 h-8 cursor-pointer text-lg hover:bg-white transition-colors flex items-center justify-center font-bold"
+                        >
+                            ×
+                        </button>
                     </div>
                 </div>
             )}
