@@ -1,5 +1,5 @@
 # Echo Nano Banana
-Change 5 lines-of-code to create monetized Nano Banana apps.
+Change 5 lines-of-code to create monetized Nano Banana apps. [Try it out live](https://echo-nano-banana.vercel.app/).
 
 ![Example](imgs/ex.png)
 
