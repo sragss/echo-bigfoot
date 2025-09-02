@@ -143,7 +143,7 @@ export default function AIComponent() {
             setShowLoadingBar(false);
             setLoadingProgress(0);
             
-            // Store raw error for debugging
+            // Store complete error for debugging
             setRawError(error);
             
             // Set user-friendly error message
@@ -235,18 +235,34 @@ export default function AIComponent() {
                             {/* Advanced Error Details */}
                             {showAdvanced && rawError && (
                                 <div className="mt-4 p-4 bg-red-100 rounded-lg">
-                                    <h4 className="font-bold text-red-800 mb-2">Raw Error Details:</h4>
-                                    <pre className="text-xs text-red-700 overflow-x-auto whitespace-pre-wrap break-words">
-                                        {JSON.stringify(rawError, null, 2)}
+                                    <h4 className="font-bold text-red-800 mb-2">Error Type:</h4>
+                                    <pre className="text-xs text-red-700 mb-3">
+                                        {rawError.constructor?.name || typeof rawError}
                                     </pre>
-                                    {rawError?.stack && (
+                                    
+                                    <h4 className="font-bold text-red-800 mb-2">Error Message:</h4>
+                                    <pre className="text-xs text-red-700 overflow-x-auto whitespace-pre-wrap break-words mb-3">
+                                        {rawError.message || String(rawError)}
+                                    </pre>
+                                    
+                                    {rawError.stack && (
                                         <>
-                                            <h4 className="font-bold text-red-800 mt-3 mb-2">Stack Trace:</h4>
-                                            <pre className="text-xs text-red-700 overflow-x-auto whitespace-pre-wrap break-words">
+                                            <h4 className="font-bold text-red-800 mb-2">Stack Trace:</h4>
+                                            <pre className="text-xs text-red-700 overflow-x-auto whitespace-pre-wrap break-words mb-3" style={{maxHeight: '200px'}}>
                                                 {rawError.stack}
                                             </pre>
                                         </>
                                     )}
+                                    
+                                    <h4 className="font-bold text-red-800 mb-2">Full Error Object:</h4>
+                                    <pre className="text-xs text-red-700 overflow-x-auto whitespace-pre-wrap break-words" style={{maxHeight: '200px'}}>
+                                        {JSON.stringify(rawError, (key, value) => {
+                                            // Handle circular references and functions
+                                            if (typeof value === 'function') return '[Function]';
+                                            if (value === rawError && key !== '') return '[Circular]';
+                                            return value;
+                                        }, 2)}
+                                    </pre>
                                 </div>
                             )}
                         </div>
