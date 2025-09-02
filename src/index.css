@@ -3,10 +3,134 @@
 /* Fix for iOS Safari viewport height issues */
 :root {
   --vh: 1vh;
+  
+  /* Custom color system */
+  --forest-50: #f0f9f0;
+  --forest-100: #dcf4dc;
+  --forest-200: #bae8ba;
+  --forest-300: #8dd88d;
+  --forest-400: #5cc05c;
+  --forest-500: #339933;
+  --forest-600: #2d7d2d;
+  --forest-700: #256625;
+  --forest-800: #1f5220;
+  --forest-900: #1a441b;
+  
+  --earth-50: #fdf8f3;
+  --earth-100: #f9f0e6;
+  --earth-200: #f0dcc6;
+  --earth-300: #e5c29f;
+  --earth-400: #d6a075;
+  --earth-500: #c4824f;
+  --earth-600: #a66a3e;
+  --earth-700: #8a5633;
+  --earth-800: #70462c;
+  --earth-900: #5c3a25;
 }
 
 body {
   margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography System */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Cabin', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.font-display {
+  font-family: 'Cabin', Georgia, serif;
+}
+
+/* Shadows & Elevation */
+.shadow-soft {
+  box-shadow: 
+    0 1px 3px 0 rgba(0, 0, 0, 0.08),
+    0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+
+.shadow-medium {
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 2px 4px -1px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-strong {
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.08),
+    0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-forest {
+  box-shadow: 
+    0 4px 6px -1px rgba(25, 68, 27, 0.15),
+    0 2px 4px -1px rgba(25, 68, 27, 0.08);
+}
+
+.shadow-xl {
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Smooth animations */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Button hover effects */
+button {
+  transform-origin: center;
+}
+
+/* Backdrop blur support */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--forest-50);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--forest-400);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--forest-500);
+}
+
+/* Focus styles */
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--forest-500);
+  outline-offset: 2px;
+}
+
+/* Loading animation */
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Mobile viewport fix for iOS Safari */

@@ -23,14 +23,14 @@ function App() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100">
-            <header className="border-b border-green-800 bg-green-900 text-green-50 px-5 py-4">
-                <div className="flex justify-between items-center">
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-200">
+            <header className="bg-gradient-to-r from-green-800 to-green-900 text-green-50 px-6 py-6 shadow-strong">
+                <div className="flex justify-between items-center max-w-6xl mx-auto">
                     <div>
-                        <h1 className="text-lg font-bold flex items-center gap-2">
+                        <h1 className="text-2xl font-display font-bold flex items-center gap-3">
                             🦶 Bigfoot Detector
                         </h1>
-                        <p className="text-sm text-green-200">
+                        <p className="text-green-200 mt-1 font-medium">
                             Discover the cryptid hiding in plain sight
                         </p>
                     </div>
@@ -40,7 +40,7 @@ function App() {
                         {user && (
                             <button
                                 onClick={signOut}
-                                className="border border-green-600 px-3 py-1 text-sm cursor-pointer bg-green-800 hover:bg-green-700 text-green-100 rounded-md transition-colors"
+                                className="border-2 border-green-600 px-4 py-2 cursor-pointer bg-green-700 hover:bg-green-600 text-green-100 rounded-lg transition-all hover:shadow-medium font-medium"
                             >
                                 Exit Trail
                             </button>
@@ -49,15 +49,17 @@ function App() {
                 </div>
             </header>
 
-            <main>
+            <main className="max-w-6xl mx-auto">
                 {!isAuthenticated ? (
-                    <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-                        <div className="text-6xl mb-5">🌲</div>
-                        <h2 className="mb-2 text-lg text-green-800 font-bold">Enter the Forest</h2>
-                        <p className="mb-4 text-green-700">
-                            Sign in to begin your cryptid research expedition
-                        </p>
-                        {!user && <EchoSignIn />}
+                    <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
+                        <div className="bg-white shadow-strong rounded-2xl p-12 max-w-md mx-auto">
+                            <div className="text-8xl mb-6">🌲</div>
+                            <h2 className="mb-4 text-2xl text-green-800 font-display font-bold">Enter the Forest</h2>
+                            <p className="mb-6 text-green-700 leading-relaxed">
+                                Sign in to begin your cryptid research expedition
+                            </p>
+                            {!user && <EchoSignIn />}
+                        </div>
                     </div>
                 ) : (
                     <AIComponent />

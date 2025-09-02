@@ -11,9 +11,9 @@ interface UploadedImage {
 
 
 export default function AIComponent() { 
-    const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-    const [editedImages, setEditedImages] = useState<string[]>([]);
-    const [isEditingImages, setIsEditingImages] = useState(false);
+    const [uploadedImage, setUploadedImage] = useState<UploadedImage | null>(null);
+    const [editedImage, setEditedImage] = useState<string | null>(null);
+    const [isEditingImage, setIsEditingImage] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
     const [modalImage, setModalImage] = useState<string | null>(null);
     const [loadingProgress, setLoadingProgress] = useState(0);
@@ -27,31 +27,37 @@ export default function AIComponent() {
     
     const { google } = useEchoModelProviders();
 
-    const addImages = useCallback((files: FileList | File[]) => {
-        const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-        const newImages: UploadedImage[] = validFiles.map(file => ({
+    const addImage = useCallback((file: File) => {
+        if (!file.type.startsWith('image/')) return;
+        
+        // Clean up previous image if exists
+        if (uploadedImage) {
+            URL.revokeObjectURL(uploadedImage.url);
+        }
+        
+        const newImage: UploadedImage = {
             file,
             url: URL.createObjectURL(file),
             id: Math.random().toString(36).substring(7)
-        }));
-        setUploadedImages(prev => [...prev, ...newImages]);
-    }, []);
+        };
+        
+        setUploadedImage(newImage);
+        setEditedImage(null); // Clear any previous results
+    }, [uploadedImage]);
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (files && files.length > 0) {
-            addImages(files);
+            addImage(files[0]);
         }
     };
 
-    const removeImage = (id: string) => {
-        setUploadedImages(prev => {
-            const imageToRemove = prev.find(img => img.id === id);
-            if (imageToRemove) {
-                URL.revokeObjectURL(imageToRemove.url);
-            }
-            return prev.filter(img => img.id !== id);
-        });
+    const removeImage = () => {
+        if (uploadedImage) {
+            URL.revokeObjectURL(uploadedImage.url);
+        }
+        setUploadedImage(null);
+        setEditedImage(null);
     };
 
     const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -69,29 +75,25 @@ export default function AIComponent() {
         setIsDragOver(false);
         const files = e.dataTransfer.files;
         if (files && files.length > 0) {
-            addImages(files);
+            addImage(files[0]);
         }
-    }, [addImages]);
+    }, [addImage]);
 
     const handlePaste = useCallback((e: ClipboardEvent) => {
         const items = e.clipboardData?.items;
         if (!items) return;
 
-        const imageFiles: File[] = [];
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
             if (item.type.startsWith('image/')) {
                 const file = item.getAsFile();
                 if (file) {
-                    imageFiles.push(file);
+                    addImage(file);
+                    break; // Only take the first image
                 }
             }
         }
-
-        if (imageFiles.length > 0) {
-            addImages(imageFiles);
-        }
-    }, [addImages]);
+    }, [addImage]);
 
     useEffect(() => {
         document.addEventListener('paste', handlePaste);
@@ -115,7 +117,7 @@ export default function AIComponent() {
 
     // Bouncing animation effect
     useEffect(() => {
-        if (!isEditingImages) return;
+        if (!isEditingImage) return;
         
         const animationInterval = setInterval(() => {
             setBouncingPosition(prev => {
@@ -152,16 +154,16 @@ export default function AIComponent() {
             clearInterval(animationInterval);
             clearInterval(flashInterval);
         };
-    }, [isEditingImages, bouncingVelocity.dx, bouncingVelocity.dy]);
+    }, [isEditingImage, bouncingVelocity.dx, bouncingVelocity.dy]);
 
     const handleImageEdit = async () => {
-        if (uploadedImages.length === 0) {
-            alert('🌲 Please upload at least one image for cryptid analysis!');
+        if (!uploadedImage) {
+            alert('🌲 Please upload an image for bigfoot transformation!');
             return;
         }
 
-        setIsEditingImages(true);
-        setEditedImages([]);
+        setIsEditingImage(true);
+        setEditedImage(null);
         setErrorMessage(null); // Clear any previous errors
         setShowLoadingBar(true);
         setLoadingProgress(0);
@@ -177,9 +179,8 @@ export default function AIComponent() {
         }, 400);
         
         try {
-            const files = uploadedImages.map(img => img.file);
             const bigfootPrompt = "Make all humans in this image into bigfoot. Leave the rest of the image unchanged. Keep their clothes and any accessories exactly.";
-            const editedImageUrls = await editImages(files, bigfootPrompt, google);
+            const editedImageUrls = await editImages([uploadedImage.file], bigfootPrompt, google);
             
             // Clear the interval and finish the progress bar
             clearInterval(progressInterval);
@@ -187,7 +188,7 @@ export default function AIComponent() {
             
             // Wait a moment to show completion, then hide
             setTimeout(() => {
-                setEditedImages(editedImageUrls);
+                setEditedImage(editedImageUrls[0] || null);
                 setShowLoadingBar(false);
                 setLoadingProgress(0);
             }, 500);
@@ -199,44 +200,33 @@ export default function AIComponent() {
             setLoadingProgress(0);
             
             // Set user-friendly error message
-            const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred while editing your images. Please try again.';
+            const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred while transforming your image. Please try again.';
             setErrorMessage(errorMsg);
         } finally {
-            setIsEditingImages(false);
+            setIsEditingImage(false);
         }
     };
 
-    const addEditedToInput = async () => {
-        const newImages: UploadedImage[] = [];
+    const saveImage = async () => {
+        if (!editedImage) return;
         
-        for (let i = 0; i < editedImages.length; i++) {
-            const imageUrl = editedImages[i];
-            try {
-                // Fetch the blob from the object URL
-                const response = await fetch(imageUrl);
-                const blob = await response.blob();
-                
-                // Create a File object from the blob
-                const file = new File([blob], `edited-image-${i + 1}.png`, { type: blob.type });
-                
-                // Create new UploadedImage object
-                const uploadedImage: UploadedImage = {
-                    file,
-                    url: imageUrl, // Keep the same URL since it's already created
-                    id: Math.random().toString(36).substring(7)
-                };
-                
-                newImages.push(uploadedImage);
-            } catch (error) {
-                console.error(`Error converting edited image ${i + 1}:`, error);
-            }
+        try {
+            // Fetch the blob from the object URL
+            const response = await fetch(editedImage);
+            const blob = await response.blob();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'bigfoot-transformation.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error saving image:', error);
         }
-        
-        // Add new images to uploaded images
-        setUploadedImages(prev => [...prev, ...newImages]);
-        
-        // Clear edited results
-        setEditedImages([]);
     };
 
     const UploadArea = () => (
@@ -245,15 +235,17 @@ export default function AIComponent() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={`
-                relative aspect-square w-[200px] border-2 border-dashed border-green-600 text-center cursor-pointer group rounded-lg
-                ${isDragOver ? 'bg-green-100 border-green-700' : 'bg-green-50 hover:bg-green-100'}
-                transition-all duration-200
+                relative aspect-square w-[280px] border-2 border-dashed text-center cursor-pointer group rounded-2xl shadow-medium hover:shadow-strong
+                ${isDragOver 
+                    ? 'bg-green-100 border-green-700 scale-105' 
+                    : 'bg-white hover:bg-green-50 border-green-500 hover:border-green-600'
+                }
+                transition-all duration-300 ease-out
             `}
         >
             <input
                 type="file"
                 accept="image/*"
-                multiple
                 onChange={handleImageUpload}
                 className="hidden"
                 id="file-upload"
@@ -262,20 +254,20 @@ export default function AIComponent() {
                 htmlFor="file-upload"
                 className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-green-800"
             >
-                <div className="flex flex-col items-center justify-center h-full">
-                    <div className="relative mb-2 text-green-700">
-                        <div className="text-2xl opacity-100 group-hover:opacity-0 transition-opacity duration-200">
+                <div className="flex flex-col items-center justify-center h-full p-6">
+                    <div className="relative mb-4 text-green-700">
+                        <div className="text-4xl opacity-100 group-hover:opacity-0 transition-opacity duration-200">
                             🌲
                         </div>
                         <Upload 
-                            size={24} 
+                            size={32} 
                             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200" 
                         />
                     </div>
-                    <p className="text-sm px-2 mb-1 font-medium">
+                    <p className="text-lg px-2 mb-2 font-display font-bold">
                         Upload Evidence
                     </p>
-                    <p className="text-xs px-2 opacity-70">
+                    <p className="text-sm px-2 opacity-70">
                         Paste, Drag or Click
                     </p>
                 </div>
@@ -284,59 +276,55 @@ export default function AIComponent() {
     );
 
     return (
-        <div className="w-full p-5">
-            {/* Show upload area first if no images */}
-            {uploadedImages.length === 0 && (
-                <div className="mb-8">
+        <div className="w-full px-6 py-8">
+            {/* Show upload area first if no image */}
+            {!uploadedImage && (
+                <div className="mb-12 flex justify-center">
                     <UploadArea />
                 </div>
             )}
 
-            {/* Research Evidence Collection */}
-            {uploadedImages.length > 0 && (
-                <div className="mb-8">
-                    <h3 className="mb-4 text-lg text-green-900 font-bold flex items-center gap-2">
-                        📸 Evidence Collection ({uploadedImages.length})
+            {/* Current Image */}
+            {uploadedImage && (
+                <div className="mb-12">
+                    <h3 className="mb-6 text-2xl text-green-900 font-display font-bold flex items-center justify-center gap-3">
+                        📸 Your Subject
                     </h3>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4 mb-5">
-                        {uploadedImages.map((image) => (
-                            <div key={image.id} className="relative">
-                                <img
-                                    src={image.url}
-                                    alt={image.file.name}
-                                    className="w-full h-50 object-cover border-2 border-green-600 cursor-pointer rounded-lg hover:border-green-700 transition-colors"
-                                    onClick={() => setModalImage(image.url)}
-                                />
-                                <button
-                                    onClick={() => removeImage(image.id)}
-                                    className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 border border-red-800 w-6 h-6 cursor-pointer text-sm flex items-center justify-center text-white rounded-full transition-colors"
-                                >
-                                    ×
-                                </button>
-                                <p className="mt-1 text-xs text-center overflow-hidden text-ellipsis whitespace-nowrap text-green-800">
-                                    {image.file.name}
-                                </p>
-                            </div>
-                        ))}
-                        {/* Show upload area at end if there are images */}
-                        <UploadArea />
+                    <div className="flex justify-center">
+                        <div className="relative max-w-lg bg-white rounded-2xl p-4 shadow-strong">
+                            <img
+                                src={uploadedImage.url}
+                                alt={uploadedImage.file.name}
+                                className="w-full h-auto object-cover cursor-pointer rounded-xl hover:shadow-medium transition-all duration-300"
+                                onClick={() => setModalImage(uploadedImage.url)}
+                            />
+                            <button
+                                onClick={removeImage}
+                                className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 w-8 h-8 cursor-pointer text-sm flex items-center justify-center text-white rounded-full shadow-medium hover:shadow-strong transition-all duration-200"
+                            >
+                                ×
+                            </button>
+                            <p className="mt-3 text-sm text-center text-green-800 font-medium">
+                                {uploadedImage.file.name}
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}
 
             {/* Research Incident Report */}
             {errorMessage && (
-                <div className="border-2 border-red-600 bg-red-50 p-4 mb-8 rounded-lg">
+                <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-6 mb-8 shadow-medium max-w-2xl mx-auto">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h3 className="text-lg mb-2 text-red-800 font-bold flex items-center gap-2">
+                            <h3 className="text-xl mb-3 text-red-800 font-display font-bold flex items-center gap-3">
                                 ⚠️ Research Incident
                             </h3>
-                            <p className="text-sm text-red-700">{errorMessage}</p>
+                            <p className="text-red-700 leading-relaxed">{errorMessage}</p>
                         </div>
                         <button
                             onClick={() => setErrorMessage(null)}
-                            className="border border-red-600 bg-red-100 hover:bg-red-200 w-6 h-6 cursor-pointer text-sm flex items-center justify-center rounded text-red-800 transition-colors"
+                            className="bg-red-100 hover:bg-red-200 w-8 h-8 cursor-pointer text-lg flex items-center justify-center rounded-full text-red-800 transition-all hover:shadow-soft"
                         >
                             ×
                         </button>
@@ -344,71 +332,58 @@ export default function AIComponent() {
                 </div>
             )}
 
-            {/* Bigfoot Detection Controls */}
-            {uploadedImages.length > 0 && (
-                <div className="border-2 border-green-800 bg-gradient-to-r from-green-100 to-green-50 p-6 mb-8 rounded-lg">
-                    <h3 className="mb-4 text-lg text-green-900 font-bold flex items-center gap-2">
-                        🔍 Cryptid Analysis Station
-                    </h3>
-                    <div className="bg-green-50 border border-green-600 p-4 mb-4 rounded text-green-800 text-sm">
-                        <strong>Field Research Protocol:</strong> Our advanced AI will scan for human subjects and transform them into bigfoot while preserving all clothing, accessories, and environmental details.
-                    </div>
+            {/* Bigfoot Birth Controls */}
+            {uploadedImage && (
+                <div className="flex justify-center mb-12">
                     <button
                         onClick={handleImageEdit}
-                        disabled={isEditingImages || uploadedImages.length === 0}
+                        disabled={isEditingImage}
                         className={`
-                            px-6 py-3 border-2 border-green-800 cursor-pointer font-bold rounded-lg transition-all
-                            ${uploadedImages.length > 0 && !isEditingImages 
-                                ? 'bg-green-700 hover:bg-green-600 text-white shadow-lg' 
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            px-12 py-6 border-2 cursor-pointer font-display font-bold text-2xl rounded-2xl transition-all duration-300
+                            ${!isEditingImage 
+                                ? 'bg-gradient-to-r from-green-700 to-green-600 hover:from-green-600 hover:to-green-500 border-green-800 text-white shadow-strong hover:shadow-xl hover:scale-105' 
+                                : 'bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed'
                             }
                         `}
                     >
-                        {isEditingImages 
-                            ? `🔬 Analyzing ${uploadedImages.length} specimen${uploadedImages.length > 1 ? 's' : ''}...` 
-                            : `🦶 Detect Bigfoot in ${uploadedImages.length} image${uploadedImages.length > 1 ? 's' : ''}`
-                        }
+                        {isEditingImage ? '🌟 Birthing a bigfoot...' : '🦶 Birth a bigfoot'}
                     </button>
                 </div>
             )}
 
-            {/* Cryptid Sightings Confirmed */}
-            {editedImages.length > 0 && (
-                <div>
-                    <h3 className="mb-5 text-lg text-green-900 font-bold flex items-center gap-2">
-                        🦶 Bigfoot Sightings Confirmed ({editedImages.length})
+            {/* Bigfoot Born! */}
+            {editedImage && (
+                <div className="text-center">
+                    <h3 className="mb-8 text-3xl text-green-900 font-display font-bold flex items-center gap-4 justify-center">
+                        🦶 Bigfoot Born!
                     </h3>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5 mb-5">
-                        {editedImages.map((imageUrl, index) => (
-                            <div key={index} className="text-center">
-                                <img
-                                    src={imageUrl}
-                                    alt={`Bigfoot sighting ${index + 1}`}
-                                    className="w-full h-auto max-h-96 object-contain border-2 border-green-600 cursor-pointer rounded-lg hover:border-green-700 transition-colors"
-                                    onClick={() => setModalImage(imageUrl)}
-                                />
-                                <p className="mt-2 text-sm text-green-800 font-medium">
-                                    Research Photo #{index + 1}
-                                </p>
-                            </div>
-                        ))}
+                    <div className="flex justify-center mb-8">
+                        <div className="bg-white rounded-2xl p-6 shadow-strong hover:shadow-xl transition-all duration-300">
+                            <img
+                                src={editedImage}
+                                alt="Bigfoot transformation result"
+                                className="w-full h-auto max-w-2xl object-contain cursor-pointer rounded-xl hover:scale-105 transition-transform duration-300"
+                                onClick={() => setModalImage(editedImage)}
+                            />
+                        </div>
                     </div>
-                    <button
-                        onClick={addEditedToInput}
-                        title="Add to Evidence Collection"
-                        className="px-4 py-2 border-2 border-green-600 cursor-pointer bg-green-100 hover:bg-green-200 flex items-center gap-2 text-green-800 font-medium rounded-lg transition-colors"
-                    >
-                        📁 Add to Evidence Collection
-                    </button>
+                    <div className="flex justify-center">
+                        <button
+                            onClick={saveImage}
+                            className="px-8 py-4 border-2 border-green-600 cursor-pointer bg-gradient-to-r from-green-100 to-green-50 hover:from-green-200 hover:to-green-100 flex items-center gap-3 text-green-800 font-display font-bold rounded-xl transition-all duration-300 text-xl shadow-medium hover:shadow-strong hover:scale-105"
+                        >
+                            💾 Save Bigfoot
+                        </button>
+                    </div>
                 </div>
             )}
 
             {/* Research Progress Bar */}
             {showLoadingBar && (
                 <div className="fixed top-0 left-0 right-0 z-50">
-                    <div className="h-3 bg-green-100">
+                    <div className="h-2 bg-green-100 shadow-soft">
                         <div 
-                            className="h-full bg-gradient-to-r from-green-600 to-green-700 transition-all duration-300 ease-out"
+                            className="h-full bg-gradient-to-r from-green-600 via-green-500 to-green-600 transition-all duration-300 ease-out shadow-forest"
                             style={{ width: `${loadingProgress}%` }}
                         />
                     </div>
@@ -416,9 +391,9 @@ export default function AIComponent() {
             )}
 
             {/* Bouncing Research Assistant */}
-            {isEditingImages && (
+            {isEditingImage && (
                 <div 
-                    className="fixed z-40 pointer-events-none text-5xl transition-transform duration-100"
+                    className="fixed z-40 pointer-events-none text-6xl transition-transform duration-100 drop-shadow-lg"
                     style={{ 
                         left: `${bouncingPosition.x}px`, 
                         top: `${bouncingPosition.y}px`,
@@ -432,19 +407,21 @@ export default function AIComponent() {
             {/* Evidence Viewer Modal */}
             {modalImage && (
                 <div 
-                    className="fixed inset-0 bg-green-900/90 flex items-center justify-center z-50 p-4"
+                    className="fixed inset-0 bg-green-900/95 backdrop-blur-sm flex items-center justify-center z-50 p-6"
                     onClick={() => setModalImage(null)}
                 >
                     <div className="relative max-w-full max-h-full">
-                        <img
-                            src={modalImage}
-                            alt="Research evidence - full view"
-                            className="max-w-full max-h-full object-contain border-2 border-green-600 rounded-lg"
-                            onClick={(e) => e.stopPropagation()}
-                        />
+                        <div className="bg-white rounded-2xl p-4 shadow-xl">
+                            <img
+                                src={modalImage}
+                                alt="Research evidence - full view"
+                                className="max-w-full max-h-[80vh] object-contain rounded-xl"
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        </div>
                         <button
                             onClick={() => setModalImage(null)}
-                            className="absolute top-2 right-2 bg-green-100 hover:bg-green-200 border-2 border-green-600 w-8 h-8 cursor-pointer text-lg flex items-center justify-center text-green-800 rounded-full transition-colors"
+                            className="absolute -top-4 -right-4 bg-white hover:bg-gray-50 border-2 border-gray-300 w-12 h-12 cursor-pointer text-xl flex items-center justify-center text-gray-600 rounded-full transition-all shadow-medium hover:shadow-strong"
                         >
                             ×
                         </button>
