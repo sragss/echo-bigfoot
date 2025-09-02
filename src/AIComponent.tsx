@@ -18,6 +18,8 @@ export default function AIComponent() {
     const [loadingProgress, setLoadingProgress] = useState(0);
     const [showLoadingBar, setShowLoadingBar] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [rawError, setRawError] = useState<any>(null);
+    const [showAdvanced, setShowAdvanced] = useState(false);
     
     // Bouncing animation state
     const [bouncingPosition, setBouncingPosition] = useState({ x: 100, y: 100 });
@@ -141,6 +143,9 @@ export default function AIComponent() {
             setShowLoadingBar(false);
             setLoadingProgress(0);
             
+            // Store raw error for debugging
+            setRawError(error);
+            
             // Set user-friendly error message
             const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred while transforming your image. Please try again.';
             setErrorMessage(errorMsg);
@@ -213,15 +218,45 @@ export default function AIComponent() {
             {errorMessage && (
                 <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-6 mb-8 shadow-medium max-w-2xl mx-auto">
                     <div className="flex justify-between items-start">
-                        <div>
+                        <div className="flex-1">
                             <h3 className="text-xl mb-3 text-red-800 font-display font-bold flex items-center gap-3">
                                 ⚠️ Research Incident
                             </h3>
-                            <p className="text-red-700 leading-relaxed">{errorMessage}</p>
+                            <p className="text-red-700 leading-relaxed mb-4">{errorMessage}</p>
+                            
+                            {/* Advanced Details Button */}
+                            <button
+                                onClick={() => setShowAdvanced(!showAdvanced)}
+                                className="text-red-600 text-sm underline hover:text-red-800 transition-colors"
+                            >
+                                Advanced
+                            </button>
+                            
+                            {/* Advanced Error Details */}
+                            {showAdvanced && rawError && (
+                                <div className="mt-4 p-4 bg-red-100 rounded-lg">
+                                    <h4 className="font-bold text-red-800 mb-2">Raw Error Details:</h4>
+                                    <pre className="text-xs text-red-700 overflow-x-auto whitespace-pre-wrap break-words">
+                                        {JSON.stringify(rawError, null, 2)}
+                                    </pre>
+                                    {rawError?.stack && (
+                                        <>
+                                            <h4 className="font-bold text-red-800 mt-3 mb-2">Stack Trace:</h4>
+                                            <pre className="text-xs text-red-700 overflow-x-auto whitespace-pre-wrap break-words">
+                                                {rawError.stack}
+                                            </pre>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         <button
-                            onClick={() => setErrorMessage(null)}
-                            className="bg-red-100 hover:bg-red-200 w-8 h-8 cursor-pointer text-lg flex items-center justify-center rounded-full text-red-800 transition-all hover:shadow-soft"
+                            onClick={() => {
+                                setErrorMessage(null);
+                                setRawError(null);
+                                setShowAdvanced(false);
+                            }}
+                            className="bg-red-100 hover:bg-red-200 w-8 h-8 cursor-pointer text-lg flex items-center justify-center rounded-full text-red-800 transition-all hover:shadow-soft ml-4"
                         >
                             ×
                         </button>
