@@ -1,10 +1,7 @@
-# Echo Nano Banana
-Change 5 lines-of-code to create monetized Nano Banana apps. [Try it out live](https://echo-nano-banana.vercel.app/).
+# 🦶 Bigfoot Detector
+Transform any photo into a Bigfoot encounter. Upload or capture images and watch humans become cryptids.
 
 ![Example](imgs/ex.png)
-
-
-Fork and remix this to make a much more opinionated revenue-generating app in 15 minutes.
 
 
 # Development
