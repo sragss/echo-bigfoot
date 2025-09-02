@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useEchoModelProviders } from '@merit-systems/echo-react-sdk';
+import { useEchoModelProviders, useEcho, EchoTokenPurchase } from '@merit-systems/echo-react-sdk';
 import { editImages } from './imageHelpers';
 import ImageCapture from './ImageCapture';
 
@@ -27,6 +27,11 @@ export default function AIComponent() {
     const [isGorilla, setIsGorilla] = useState(false);
     
     const { google } = useEchoModelProviders();
+    const { balance, freeTierBalance } = useEcho();
+    
+    // Check if user has sufficient funds
+    const totalBalance = (balance?.balance || 0) + (freeTierBalance?.userSpendInfo?.amountLeft || 0);
+    const needsPayment = totalBalance <= 0;
 
     const handleImageCapture = (newImage: UploadedImage) => {
         // Clean up previous image if exists
@@ -143,6 +148,18 @@ export default function AIComponent() {
             setShowLoadingBar(false);
             setLoadingProgress(0);
             
+            // Check if this is a 402 payment required error
+            const errorString = String(error);
+            const isPaymentRequired = errorString.includes('402') || 
+                                    errorString.includes('payment required') ||
+                                    errorString.includes('insufficient funds') ||
+                                    errorString.includes('credits');
+            
+            if (isPaymentRequired) {
+                // Don't show error for payment issues, let the payment component handle it
+                return;
+            }
+            
             // Store complete error for debugging
             setRawError(error);
             
@@ -254,6 +271,27 @@ export default function AIComponent() {
                                         </>
                                     )}
                                     
+                                    {rawError.debugInfo && (
+                                        <>
+                                            <h4 className="font-bold text-red-800 mb-2">Debug Info:</h4>
+                                            <pre className="text-xs text-red-700 overflow-x-auto whitespace-pre-wrap break-words mb-3" style={{maxHeight: '200px'}}>
+                                                {JSON.stringify(rawError.debugInfo, null, 2)}
+                                            </pre>
+                                        </>
+                                    )}
+                                    
+                                    {rawError.cause && (
+                                        <>
+                                            <h4 className="font-bold text-red-800 mb-2">Original Error:</h4>
+                                            <pre className="text-xs text-red-700 overflow-x-auto whitespace-pre-wrap break-words mb-3" style={{maxHeight: '200px'}}>
+                                                {JSON.stringify(rawError.cause, (_, value) => {
+                                                    if (typeof value === 'function') return '[Function]';
+                                                    return value;
+                                                }, 2)}
+                                            </pre>
+                                        </>
+                                    )}
+                                    
                                     <h4 className="font-bold text-red-800 mb-2">Full Error Object:</h4>
                                     <pre className="text-xs text-red-700 overflow-x-auto whitespace-pre-wrap break-words" style={{maxHeight: '200px'}}>
                                         {JSON.stringify(rawError, (key, value) => {
@@ -281,7 +319,7 @@ export default function AIComponent() {
             )}
 
             {/* Bigfoot Birth Controls */}
-            {uploadedImage && (
+            {uploadedImage && !needsPayment && (
                 <div className="flex justify-center mb-12">
                     <button
                         onClick={handleImageEdit}
@@ -296,6 +334,33 @@ export default function AIComponent() {
                     >
                         {isEditingImage ? '🌟 Birthing a bigfoot...' : '🦶 Birth a bigfoot'}
                     </button>
+                </div>
+            )}
+
+            {/* Payment Required */}
+            {uploadedImage && needsPayment && (
+                <div className="flex justify-center mb-12">
+                    <div className="bg-white rounded-2xl p-8 shadow-strong max-w-md mx-auto text-center">
+                        <div className="text-6xl mb-4">🪙</div>
+                        <h3 className="text-2xl mb-4 text-green-900 font-display font-bold">
+                            Need More Forest Credits
+                        </h3>
+                        <p className="text-green-700 mb-6 leading-relaxed">
+                            Your bigfoot transformation requires more credits. Purchase additional credits to continue your cryptid research.
+                        </p>
+                        <div className="mb-4">
+                            <p className="text-sm text-green-600">
+                                Balance: ${(balance?.balance || 0).toFixed(2)} • 
+                                Free Credits: ${(freeTierBalance?.userSpendInfo?.amountLeft || 0).toFixed(2)}
+                            </p>
+                        </div>
+                        <EchoTokenPurchase 
+                            amount={5}
+                            onPurchaseComplete={() => {
+                                // Refresh will happen automatically through the hook
+                            }}
+                        />
+                    </div>
                 </div>
             )}
 
