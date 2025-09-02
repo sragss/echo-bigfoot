@@ -1,5 +1,5 @@
 # 🦶 Bigfoot Detector
-Transform any photo into a Bigfoot encounter. Upload or capture images and watch humans become cryptids.
+Transform any photo into a Bigfoot encounter. Upload or capture images and watch humans become cryptids. [Try it live](https://echo-bigfoot.vercel.app/).
 
 ![Example](imgs/ex.png)
 
