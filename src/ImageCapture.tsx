@@ -228,14 +228,14 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
                     
                     {/* Camera Controls */}
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
-                        {/* Flip Camera Button (Mobile) */}
+                        {/* Flip Camera Button */}
                         <button
                             onClick={toggleFacingMode}
                             disabled={disabled}
-                            className="bg-white/90 hover:bg-white border-2 border-green-600 w-10 h-10 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50"
-                            title="Switch Camera"
+                            className="bg-white/90 hover:bg-white border-2 border-green-600 w-12 h-12 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
+                            title={`Switch to ${facingMode === 'user' ? 'Back' : 'Front'} Camera`}
                         >
-                            <RotateCcw size={16} />
+                            <RotateCcw size={18} />
                         </button>
                         
                         {/* Capture Button */}
