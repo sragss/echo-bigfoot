@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useEchoModelProviders } from '@merit-systems/echo-react-sdk';
 import { editImages } from './imageHelpers';
-import { Upload, Plus } from 'lucide-react';
+import ImageCapture from './ImageCapture';
 
 interface UploadedImage {
     file: File;
@@ -14,7 +14,6 @@ export default function AIComponent() {
     const [uploadedImage, setUploadedImage] = useState<UploadedImage | null>(null);
     const [editedImage, setEditedImage] = useState<string | null>(null);
     const [isEditingImage, setIsEditingImage] = useState(false);
-    const [isDragOver, setIsDragOver] = useState(false);
     const [modalImage, setModalImage] = useState<string | null>(null);
     const [loadingProgress, setLoadingProgress] = useState(0);
     const [showLoadingBar, setShowLoadingBar] = useState(false);
@@ -27,29 +26,14 @@ export default function AIComponent() {
     
     const { google } = useEchoModelProviders();
 
-    const addImage = useCallback((file: File) => {
-        if (!file.type.startsWith('image/')) return;
-        
+    const handleImageCapture = (newImage: UploadedImage) => {
         // Clean up previous image if exists
         if (uploadedImage) {
             URL.revokeObjectURL(uploadedImage.url);
         }
         
-        const newImage: UploadedImage = {
-            file,
-            url: URL.createObjectURL(file),
-            id: Math.random().toString(36).substring(7)
-        };
-        
         setUploadedImage(newImage);
         setEditedImage(null); // Clear any previous results
-    }, [uploadedImage]);
-
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
-        if (files && files.length > 0) {
-            addImage(files[0]);
-        }
     };
 
     const removeImage = () => {
@@ -59,48 +43,6 @@ export default function AIComponent() {
         setUploadedImage(null);
         setEditedImage(null);
     };
-
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragOver(true);
-    }, []);
-
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragOver(false);
-    }, []);
-
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragOver(false);
-        const files = e.dataTransfer.files;
-        if (files && files.length > 0) {
-            addImage(files[0]);
-        }
-    }, [addImage]);
-
-    const handlePaste = useCallback((e: ClipboardEvent) => {
-        const items = e.clipboardData?.items;
-        if (!items) return;
-
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            if (item.type.startsWith('image/')) {
-                const file = item.getAsFile();
-                if (file) {
-                    addImage(file);
-                    break; // Only take the first image
-                }
-            }
-        }
-    }, [addImage]);
-
-    useEffect(() => {
-        document.addEventListener('paste', handlePaste);
-        return () => {
-            document.removeEventListener('paste', handlePaste);
-        };
-    }, [handlePaste]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -179,7 +121,7 @@ export default function AIComponent() {
         }, 400);
         
         try {
-            const bigfootPrompt = "Make all humans in this image into bigfoot. Leave the rest of the image unchanged. Keep their clothes and any accessories exactly.";
+            const bigfootPrompt = "Transform all humans in this image into bigfoot. Keep their exact facial expression, pose, and body language. Leave the rest of the image unchanged. Keep their clothes and any accessories exactly as they are.";
             const editedImageUrls = await editImages([uploadedImage.file], bigfootPrompt, google);
             
             // Clear the interval and finish the progress bar
@@ -229,59 +171,14 @@ export default function AIComponent() {
         }
     };
 
-    const UploadArea = () => (
-        <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`
-                relative aspect-square w-[280px] border-2 border-dashed text-center cursor-pointer group rounded-2xl shadow-medium hover:shadow-strong
-                ${isDragOver 
-                    ? 'bg-green-100 border-green-700 scale-105' 
-                    : 'bg-white hover:bg-green-50 border-green-500 hover:border-green-600'
-                }
-                transition-all duration-300 ease-out
-            `}
-        >
-            <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                id="file-upload"
-            />
-            <label
-                htmlFor="file-upload"
-                className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer text-green-800"
-            >
-                <div className="flex flex-col items-center justify-center h-full p-6">
-                    <div className="relative mb-4 text-green-700">
-                        <div className="text-4xl opacity-100 group-hover:opacity-0 transition-opacity duration-200">
-                            🌲
-                        </div>
-                        <Upload 
-                            size={32} 
-                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200" 
-                        />
-                    </div>
-                    <p className="text-lg px-2 mb-2 font-display font-bold">
-                        Upload Evidence
-                    </p>
-                    <p className="text-sm px-2 opacity-70">
-                        Paste, Drag or Click
-                    </p>
-                </div>
-            </label>
-        </div>
-    );
-
     return (
         <div className="w-full px-6 py-8">
-            {/* Show upload area first if no image */}
+            {/* Show capture options if no image */}
             {!uploadedImage && (
-                <div className="mb-12 flex justify-center">
-                    <UploadArea />
-                </div>
+                <ImageCapture 
+                    onImageCapture={handleImageCapture} 
+                    disabled={isEditingImage} 
+                />
             )}
 
             {/* Current Image */}
