@@ -23,15 +23,15 @@ function App() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-white">
-            <header className="border-b border-black px-5 py-4">
+        <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100">
+            <header className="border-b border-green-800 bg-green-900 text-green-50 px-5 py-4">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-lg">
-                            Banana Editor
+                        <h1 className="text-lg font-bold flex items-center gap-2">
+                            🦶 Bigfoot Detector
                         </h1>
-                        <p className="text-sm">
-                            Edit your images with AI-powered tools
+                        <p className="text-sm text-green-200">
+                            Discover the cryptid hiding in plain sight
                         </p>
                     </div>
 
@@ -40,9 +40,9 @@ function App() {
                         {user && (
                             <button
                                 onClick={signOut}
-                                className="border border-black px-2 py-1 text-sm cursor-pointer bg-white rounded-md"
+                                className="border border-green-600 px-3 py-1 text-sm cursor-pointer bg-green-800 hover:bg-green-700 text-green-100 rounded-md transition-colors"
                             >
-                                Sign Out
+                                Exit Trail
                             </button>
                         )}
                     </div>
@@ -52,10 +52,10 @@ function App() {
             <main>
                 {!isAuthenticated ? (
                     <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-                        <div className="text-6xl mb-5">🔒</div>
-                        <h2 className="mb-2 text-lg">Authentication Required</h2>
-                        <p className="mb-4">
-                            Please sign in to start editing your images with AI
+                        <div className="text-6xl mb-5">🌲</div>
+                        <h2 className="mb-2 text-lg text-green-800 font-bold">Enter the Forest</h2>
+                        <p className="mb-4 text-green-700">
+                            Sign in to begin your cryptid research expedition
                         </p>
                         {!user && <EchoSignIn />}
                     </div>
