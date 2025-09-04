@@ -150,7 +150,7 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={`
-                relative aspect-square w-[280px] border-2 border-dashed text-center cursor-pointer group rounded-2xl shadow-medium hover:shadow-strong
+                relative aspect-square w-full max-w-sm md:max-w-md lg:max-w-lg border-2 border-dashed text-center cursor-pointer group rounded-2xl shadow-medium hover:shadow-strong
                 ${isDragOver 
                     ? 'bg-green-100 border-green-700 scale-105' 
                     : 'bg-white hover:bg-green-50 border-green-500 hover:border-green-600'
@@ -193,9 +193,9 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
     );
 
     const CameraArea = () => (
-        <div className={`relative bg-white rounded-2xl shadow-medium hover:shadow-strong transition-all duration-300 overflow-hidden ${disabled ? 'opacity-50' : ''}`}>
+        <div className={`relative bg-white rounded-2xl shadow-medium hover:shadow-strong transition-all duration-300 overflow-hidden w-full max-w-sm md:max-w-md lg:max-w-lg ${disabled ? 'opacity-50' : ''}`}>
             {cameraError ? (
-                <div className="w-[280px] aspect-square flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-full aspect-square flex flex-col items-center justify-center p-6 text-center">
                     <div className="text-4xl mb-4 text-red-500">📷</div>
                     <h3 className="text-lg font-display font-bold text-red-800 mb-2">Camera Error</h3>
                     <p className="text-sm text-red-600 mb-4">{cameraError}</p>
@@ -212,8 +212,6 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
                     <Webcam
                         ref={webcamRef}
                         audio={false}
-                        width={280}
-                        height={280}
                         screenshotFormat="image/jpeg"
                         screenshotQuality={1}
                         videoConstraints={{
@@ -223,7 +221,7 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
                         }}
                         onUserMedia={handleCameraSuccess}
                         onUserMediaError={handleCameraError}
-                        className="w-[280px] h-[280px] object-cover"
+                        className="w-full aspect-square object-cover"
                     />
                     
                     {/* Camera Controls */}
@@ -232,20 +230,20 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
                         <button
                             onClick={toggleFacingMode}
                             disabled={disabled}
-                            className="bg-white/90 hover:bg-white border-2 border-green-600 w-12 h-12 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
+                            className="bg-white/90 hover:bg-white border-2 border-green-600 w-18 h-18 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
                             title={`Switch to ${facingMode === 'user' ? 'Back' : 'Front'} Camera`}
                         >
-                            <RotateCcw size={18} />
+                            <RotateCcw size={27} />
                         </button>
                         
                         {/* Capture Button */}
                         <button
                             onClick={capturePhoto}
                             disabled={disabled}
-                            className="bg-green-600 hover:bg-green-700 border-2 border-green-800 w-12 h-12 rounded-full flex items-center justify-center text-white transition-all hover:shadow-medium hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                            className="bg-green-600 hover:bg-green-700 border-2 border-green-800 w-18 h-18 rounded-full flex items-center justify-center text-white transition-all hover:shadow-medium hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                             title="Capture Photo"
                         >
-                            <Camera size={20} />
+                            <Camera size={30} />
                         </button>
                     </div>
                 </>
@@ -285,9 +283,9 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
     );
 
     return (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center px-4">
             <ModeToggle />
-            <div className="mb-12">
+            <div className="mb-12 w-full flex justify-center">
                 {captureMode === 'upload' ? <UploadArea /> : <CameraArea />}
             </div>
         </div>
