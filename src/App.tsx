@@ -1,5 +1,6 @@
 import { EchoSignIn, useEcho, EchoTokenPurchase } from '@merit-systems/echo-react-sdk';
 import { useEffect } from 'react';
+import { Github } from 'lucide-react';
 import AIComponent from './AIComponent';
 
 function App() {
@@ -36,6 +37,15 @@ function App() {
                     </div>
 
                     <div className="flex items-center gap-5">
+                        <a
+                            href="https://github.com/sragss/echo-bigfoot"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-green-200 hover:text-green-100 transition-colors"
+                            title="View on GitHub"
+                        >
+                            <Github size={20} />
+                        </a>
                         <EchoTokenPurchase />
                         {user && (
                             <button
