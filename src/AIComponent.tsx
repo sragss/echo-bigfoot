@@ -420,11 +420,12 @@ export default function AIComponent() {
             {/* Evidence Viewer Modal */}
             {modalImage && (
                 <div 
-                    className="fixed inset-0 bg-green-900/95 backdrop-blur-sm flex items-center justify-center z-50 p-6"
+                    className="fixed inset-0 bg-green-900/95 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-6"
                     onClick={() => setModalImage(null)}
                 >
-                    <div className="relative max-w-full max-h-full">
-                        <div className="bg-white rounded-2xl p-4 shadow-xl">
+                    <div className="relative max-w-full max-h-full w-full">
+                        {/* Desktop: White container with padding, Mobile: No container */}
+                        <div className="hidden sm:block bg-white rounded-2xl p-4 shadow-xl">
                             <img
                                 src={modalImage}
                                 alt="Research evidence - full view"
@@ -432,9 +433,19 @@ export default function AIComponent() {
                                 onClick={(e) => e.stopPropagation()}
                             />
                         </div>
+                        
+                        {/* Mobile: Direct image without white container */}
+                        <img
+                            src={modalImage}
+                            alt="Research evidence - full view"
+                            className="sm:hidden max-w-full max-h-[95vh] object-contain rounded-xl w-full"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                        
+                        {/* Close button - positioned differently for mobile vs desktop */}
                         <button
                             onClick={() => setModalImage(null)}
-                            className="absolute -top-4 -right-4 bg-white hover:bg-gray-50 border-2 border-gray-300 w-12 h-12 cursor-pointer text-xl flex items-center justify-center text-gray-600 rounded-full transition-all shadow-medium hover:shadow-strong"
+                            className="absolute top-2 right-2 sm:-top-4 sm:-right-4 bg-white hover:bg-gray-50 border-2 border-gray-300 w-10 h-10 sm:w-12 sm:h-12 cursor-pointer text-lg sm:text-xl flex items-center justify-center text-gray-600 rounded-full transition-all shadow-medium hover:shadow-strong"
                         >
                             ×
                         </button>
