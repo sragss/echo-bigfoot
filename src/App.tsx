@@ -1,7 +1,8 @@
-import { EchoSignIn, useEcho, EchoTokenPurchase } from '@merit-systems/echo-react-sdk';
+import { EchoSignIn, useEcho } from '@merit-systems/echo-react-sdk';
 import { useEffect } from 'react';
 import { Github } from 'lucide-react';
 import AIComponent from './AIComponent';
+import { EchoAccount } from './components/echo-account-next';
 
 function App() {
     const { isAuthenticated, user, signOut } = useEcho();
@@ -46,15 +47,7 @@ function App() {
                         >
                             <Github size={20} />
                         </a>
-                        <EchoTokenPurchase />
-                        {user && (
-                            <button
-                                onClick={signOut}
-                                className="border-2 border-green-600 px-3 py-2 sm:px-4 cursor-pointer bg-green-700 hover:bg-green-600 text-green-100 rounded-lg transition-all hover:shadow-medium font-medium text-sm"
-                            >
-                                Exit Trail
-                            </button>
-                        )}
+                        <EchoAccount />
                     </div>
                 </div>
             </header>

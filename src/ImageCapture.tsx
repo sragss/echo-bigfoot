@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Upload, Camera } from 'lucide-react';
+import { Upload, Camera, RefreshCw } from 'lucide-react';
 import Webcam from 'react-webcam';
 
 interface UploadedImage {
@@ -15,7 +15,9 @@ interface ImageCaptureProps {
 
 export default function ImageCapture({ onImageCapture, disabled = false }: ImageCaptureProps) {
     // State
+    const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
     const [cameraError, setCameraError] = useState<string | null>(null);
+    const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
     const webcamRef = useRef<Webcam>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -94,8 +96,21 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
         setCameraError(typeof error === 'string' ? error : 'Camera access denied or not available');
     }, []);
 
-    const handleCameraSuccess = useCallback(() => {
+    const handleCameraSuccess = useCallback(async () => {
         setCameraError(null);
+
+        // Check if device has multiple cameras
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            setHasMultipleCameras(videoDevices.length > 1);
+        } catch (error) {
+            console.error('Error enumerating devices:', error);
+        }
+    }, []);
+
+    const toggleFacingMode = useCallback(() => {
+        setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
     }, []);
 
     return (
@@ -133,7 +148,7 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
                         videoConstraints={{
                             width: { ideal: 1920 },
                             height: { ideal: 1080 },
-                            facingMode: 'user'
+                            facingMode: facingMode
                         }}
                         onUserMedia={handleCameraSuccess}
                         onUserMediaError={handleCameraError}
@@ -141,6 +156,18 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
                     />
 
                     {/* Camera Controls Overlay */}
+                    {/* Flip Camera Button - Top Right (only show if multiple cameras available) */}
+                    {hasMultipleCameras && (
+                        <button
+                            onClick={toggleFacingMode}
+                            disabled={disabled}
+                            className="absolute top-6 right-6 bg-white/90 hover:bg-white border-2 border-green-600 w-12 h-12 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
+                            title={`Switch to ${facingMode === 'user' ? 'Back' : 'Front'} Camera`}
+                        >
+                            <RefreshCw size={20} />
+                        </button>
+                    )}
+
                     {/* Upload Button - Bottom Left */}
                     <button
                         onClick={triggerFileUpload}

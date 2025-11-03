@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useEchoModelProviders, useEcho, EchoTokenPurchase } from '@merit-systems/echo-react-sdk';
 import { editImages } from './imageHelpers';
 import ImageCapture from './ImageCapture';
@@ -30,6 +30,10 @@ export default function AIComponent() {
     const [selectedItem, setSelectedItem] = useState<QueueItem | null>(null);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
 
+    // Keep a ref to the latest queue for cleanup
+    const queueRef = useRef<QueueItem[]>([]);
+    queueRef.current = queue;
+
     // Bouncing animation state for loading emoji
     const [bouncingPosition, setBouncingPosition] = useState({ x: 100, y: 100 });
     const [bouncingVelocity, setBouncingVelocity] = useState({ dx: 3, dy: 2.5 });
@@ -45,17 +49,18 @@ export default function AIComponent() {
     // Check if any items are processing
     const isAnyProcessing = queue.some(item => item.status === 'processing');
 
-    // Cleanup URLs on unmount
+    // Cleanup URLs on unmount only
     useEffect(() => {
         return () => {
-            queue.forEach(item => {
+            // Clean up all object URLs when component unmounts
+            queueRef.current.forEach(item => {
                 URL.revokeObjectURL(item.originalUrl);
                 if (item.resultUrl) {
                     URL.revokeObjectURL(item.resultUrl);
                 }
             });
         };
-    }, [queue]);
+    }, []); // Empty deps - only run cleanup on unmount
 
     // Bouncing DVD-style animation during loading
     useEffect(() => {
