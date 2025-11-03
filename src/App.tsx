@@ -5,7 +5,7 @@ import AIComponent from './AIComponent';
 import { EchoAccount } from './components/echo-account-next';
 
 function App() {
-    const { isAuthenticated, user, signOut } = useEcho();
+    const { isAuthenticated, user } = useEcho();
 
     // Fix iOS Safari viewport height issues
     useEffect(() => {
