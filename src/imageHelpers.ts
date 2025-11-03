@@ -37,7 +37,7 @@ export const editImages = async (files: File[], prompt: string, googleProvider: 
         ];
 
         const result = await generateText({
-            model: await googleProvider('gemini-2.5-flash-image-preview'),
+            model: await googleProvider('gemini-2.5-flash-image'),
             messages: [
                 {
                     role: 'user',
