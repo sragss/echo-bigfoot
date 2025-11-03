@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Upload, Camera, RotateCcw } from 'lucide-react';
 import Webcam from 'react-webcam';
 
@@ -15,11 +15,10 @@ interface ImageCaptureProps {
 
 export default function ImageCapture({ onImageCapture, disabled = false }: ImageCaptureProps) {
     // State
-    const [captureMode, setCaptureMode] = useState<'upload' | 'camera'>('camera');
     const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
     const [cameraError, setCameraError] = useState<string | null>(null);
-    const [isDragOver, setIsDragOver] = useState(false);
     const webcamRef = useRef<Webcam>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Helper functions
     const createUploadedImage = useCallback((file: File): UploadedImage => ({
@@ -50,48 +49,17 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
                 onImageCapture(createUploadedImage(file));
             }
         }
+        // Reset input so same file can be selected again
+        if (event.target) {
+            event.target.value = '';
+        }
     }, [onImageCapture, createUploadedImage, disabled]);
 
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        if (disabled) return;
-        e.preventDefault();
-        setIsDragOver(true);
+    const triggerFileUpload = useCallback(() => {
+        if (!disabled && fileInputRef.current) {
+            fileInputRef.current.click();
+        }
     }, [disabled]);
-
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragOver(false);
-    }, []);
-
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        if (disabled) return;
-        e.preventDefault();
-        setIsDragOver(false);
-        const files = e.dataTransfer.files;
-        if (files && files.length > 0) {
-            const file = files[0];
-            if (file.type.startsWith('image/')) {
-                onImageCapture(createUploadedImage(file));
-            }
-        }
-    }, [onImageCapture, createUploadedImage, disabled]);
-
-    const handlePaste = useCallback((e: ClipboardEvent) => {
-        if (disabled) return;
-        const items = e.clipboardData?.items;
-        if (!items) return;
-
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            if (item.type.startsWith('image/')) {
-                const file = item.getAsFile();
-                if (file) {
-                    onImageCapture(createUploadedImage(file));
-                    break;
-                }
-            }
-        }
-    }, [onImageCapture, createUploadedImage, disabled]);
 
     // Camera handlers
     const capturePhoto = useCallback(() => {
@@ -135,76 +103,29 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
         setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
     }, []);
 
-    // Effects
-    useEffect(() => {
-        document.addEventListener('paste', handlePaste);
-        return () => {
-            document.removeEventListener('paste', handlePaste);
-        };
-    }, [handlePaste]);
-
-    // Components
-    const UploadArea = () => (
-        <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`
-                relative aspect-square w-full max-w-sm md:max-w-md lg:max-w-lg border-2 border-dashed text-center cursor-pointer group rounded-2xl shadow-medium hover:shadow-strong
-                ${isDragOver 
-                    ? 'bg-green-100 border-green-700 scale-105' 
-                    : 'bg-white hover:bg-green-50 border-green-500 hover:border-green-600'
-                }
-                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-                transition-all duration-300 ease-out
-            `}
-        >
+    return (
+        <div className="relative w-full h-full">
+            {/* Hidden file input */}
             <input
+                ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
                 disabled={disabled}
                 className="hidden"
-                id="file-upload"
             />
-            <label
-                htmlFor="file-upload"
-                className={`absolute inset-0 flex flex-col items-center justify-center text-green-800 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-            >
-                <div className="flex flex-col items-center justify-center h-full p-6">
-                    <div className="relative mb-4 text-green-700">
-                        <div className="text-4xl opacity-100 group-hover:opacity-0 transition-opacity duration-200">
-                            🌲
-                        </div>
-                        <Upload 
-                            size={32} 
-                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200" 
-                        />
-                    </div>
-                    <p className="text-lg px-2 mb-2 font-display font-bold">
-                        Upload Evidence
-                    </p>
-                    <p className="text-sm px-2 opacity-70">
-                        Paste, Drag or Click
-                    </p>
-                </div>
-            </label>
-        </div>
-    );
 
-    const CameraArea = () => (
-        <div className={`relative bg-white rounded-2xl shadow-medium hover:shadow-strong transition-all duration-300 overflow-hidden w-full max-w-sm md:max-w-md lg:max-w-lg ${disabled ? 'opacity-50' : ''}`}>
             {cameraError ? (
-                <div className="w-full aspect-square flex flex-col items-center justify-center p-6 text-center">
-                    <div className="text-4xl mb-4 text-red-500">📷</div>
-                    <h3 className="text-lg font-display font-bold text-red-800 mb-2">Camera Error</h3>
-                    <p className="text-sm text-red-600 mb-4">{cameraError}</p>
+                <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-green-50 via-green-100 to-green-200">
+                    <div className="text-6xl mb-4 text-red-500">📷</div>
+                    <h3 className="text-xl font-display font-bold text-red-800 mb-2">Camera Error</h3>
+                    <p className="text-sm text-red-600 mb-6">{cameraError}</p>
                     <button
-                        onClick={() => setCaptureMode('upload')}
+                        onClick={triggerFileUpload}
                         disabled={disabled}
-                        className="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg transition-colors disabled:opacity-50"
+                        className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all disabled:opacity-50 font-medium"
                     >
-                        Use Upload Instead
+                        📁 Upload Photo Instead
                     </button>
                 </div>
             ) : (
@@ -221,73 +142,43 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
                         }}
                         onUserMedia={handleCameraSuccess}
                         onUserMediaError={handleCameraError}
-                        className="w-full aspect-square object-cover"
+                        className="w-full h-full object-cover"
                     />
-                    
-                    {/* Camera Controls */}
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3">
-                        {/* Flip Camera Button */}
+
+                    {/* Camera Controls Overlay */}
+                    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-4">
+                        {/* Upload Button */}
                         <button
-                            onClick={toggleFacingMode}
+                            onClick={triggerFileUpload}
                             disabled={disabled}
-                            className="bg-white/90 hover:bg-white border-2 border-green-600 w-18 h-18 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
-                            title={`Switch to ${facingMode === 'user' ? 'Back' : 'Front'} Camera`}
+                            className="bg-white/90 hover:bg-white border-2 border-green-600 w-14 h-14 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
+                            title="Upload Photo"
                         >
-                            <RotateCcw size={27} />
+                            <Upload size={24} />
                         </button>
-                        
+
                         {/* Capture Button */}
                         <button
                             onClick={capturePhoto}
                             disabled={disabled}
-                            className="bg-green-600 hover:bg-green-700 border-2 border-green-800 w-18 h-18 rounded-full flex items-center justify-center text-white transition-all hover:shadow-medium hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                            className="bg-green-600 hover:bg-green-700 border-4 border-white w-16 h-16 rounded-full flex items-center justify-center text-white transition-all hover:shadow-strong hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-strong"
                             title="Capture Photo"
                         >
-                            <Camera size={30} />
+                            <Camera size={32} />
+                        </button>
+
+                        {/* Flip Camera Button */}
+                        <button
+                            onClick={toggleFacingMode}
+                            disabled={disabled}
+                            className="bg-white/90 hover:bg-white border-2 border-green-600 w-14 h-14 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
+                            title={`Switch to ${facingMode === 'user' ? 'Back' : 'Front'} Camera`}
+                        >
+                            <RotateCcw size={24} />
                         </button>
                     </div>
                 </>
             )}
-        </div>
-    );
-
-    const ModeToggle = () => (
-        <div className="flex justify-center mb-6">
-            <div className="bg-white rounded-xl p-2 shadow-medium">
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setCaptureMode('upload')}
-                        disabled={disabled}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50 ${
-                            captureMode === 'upload'
-                                ? 'bg-green-600 text-white shadow-soft'
-                                : 'text-green-800 hover:bg-green-50'
-                        }`}
-                    >
-                        📁 Upload Photo
-                    </button>
-                    <button
-                        onClick={() => setCaptureMode('camera')}
-                        disabled={disabled}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50 ${
-                            captureMode === 'camera'
-                                ? 'bg-green-600 text-white shadow-soft'
-                                : 'text-green-800 hover:bg-green-50'
-                        }`}
-                    >
-                        📷 Take Photo
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-
-    return (
-        <div className="flex flex-col items-center px-4">
-            <ModeToggle />
-            <div className="mb-12 w-full flex justify-center">
-                {captureMode === 'upload' ? <UploadArea /> : <CameraArea />}
-            </div>
         </div>
     );
 }

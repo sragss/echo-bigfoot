@@ -24,19 +24,19 @@ function App() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-200">
-            <header className="bg-gradient-to-r from-green-800 to-green-900 text-green-50 px-6 py-6 shadow-strong">
+        <div className="h-full bg-gradient-to-br from-green-50 via-green-100 to-green-200 flex flex-col overflow-hidden">
+            <header className="bg-gradient-to-r from-green-800 to-green-900 text-green-50 px-4 py-4 shadow-strong flex-shrink-0">
                 <div className="flex justify-between items-center max-w-6xl mx-auto">
                     <div>
-                        <h1 className="text-2xl font-display font-bold flex items-center gap-3">
-                            🦶 Bigfoot Detector
+                        <h1 className="text-xl sm:text-2xl font-display font-bold flex items-center gap-2">
+                            🦶 Bigfooter
                         </h1>
-                        <p className="text-green-200 mt-1 font-medium">
+                        <p className="text-green-200 mt-1 font-medium text-sm hidden sm:block">
                             Discover the cryptid hiding in plain sight
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-5">
+                    <div className="flex items-center gap-3 sm:gap-5">
                         <a
                             href="https://github.com/sragss/echo-bigfoot"
                             target="_blank"
@@ -50,7 +50,7 @@ function App() {
                         {user && (
                             <button
                                 onClick={signOut}
-                                className="border-2 border-green-600 px-4 py-2 cursor-pointer bg-green-700 hover:bg-green-600 text-green-100 rounded-lg transition-all hover:shadow-medium font-medium"
+                                className="border-2 border-green-600 px-3 py-2 sm:px-4 cursor-pointer bg-green-700 hover:bg-green-600 text-green-100 rounded-lg transition-all hover:shadow-medium font-medium text-sm"
                             >
                                 Exit Trail
                             </button>
@@ -59,9 +59,9 @@ function App() {
                 </div>
             </header>
 
-            <main className="max-w-6xl mx-auto">
+            <main className="flex-1 overflow-hidden">
                 {!isAuthenticated ? (
-                    <div className="flex flex-col items-center justify-center h-[60vh] text-center px-6">
+                    <div className="flex flex-col items-center justify-center h-full text-center px-6">
                         <div className="bg-white shadow-strong rounded-2xl p-12 max-w-md mx-auto">
                             <div className="text-8xl mb-6">🌲</div>
                             <h2 className="mb-4 text-2xl text-green-800 font-display font-bold">Enter the Forest</h2>
