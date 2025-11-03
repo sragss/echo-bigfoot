@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Upload, Camera, RotateCcw } from 'lucide-react';
+import { Upload, Camera, RefreshCw } from 'lucide-react';
 import Webcam from 'react-webcam';
 
 interface UploadedImage {
@@ -17,6 +17,7 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
     // State
     const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
     const [cameraError, setCameraError] = useState<string | null>(null);
+    const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
     const webcamRef = useRef<Webcam>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -95,8 +96,17 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
         setCameraError(typeof error === 'string' ? error : 'Camera access denied or not available');
     }, []);
 
-    const handleCameraSuccess = useCallback(() => {
+    const handleCameraSuccess = useCallback(async () => {
         setCameraError(null);
+
+        // Check if device has multiple cameras
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            setHasMultipleCameras(videoDevices.length > 1);
+        } catch (error) {
+            console.error('Error enumerating devices:', error);
+        }
     }, []);
 
     const toggleFacingMode = useCallback(() => {
@@ -146,37 +156,37 @@ export default function ImageCapture({ onImageCapture, disabled = false }: Image
                     />
 
                     {/* Camera Controls Overlay */}
-                    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-4">
-                        {/* Upload Button */}
-                        <button
-                            onClick={triggerFileUpload}
-                            disabled={disabled}
-                            className="bg-white/90 hover:bg-white border-2 border-green-600 w-14 h-14 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
-                            title="Upload Photo"
-                        >
-                            <Upload size={24} />
-                        </button>
-
-                        {/* Capture Button */}
-                        <button
-                            onClick={capturePhoto}
-                            disabled={disabled}
-                            className="bg-green-600 hover:bg-green-700 border-4 border-white w-16 h-16 rounded-full flex items-center justify-center text-white transition-all hover:shadow-strong hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-strong"
-                            title="Capture Photo"
-                        >
-                            <Camera size={32} />
-                        </button>
-
-                        {/* Flip Camera Button */}
+                    {/* Flip Camera Button - Top Right (only show if multiple cameras available) */}
+                    {hasMultipleCameras && (
                         <button
                             onClick={toggleFacingMode}
                             disabled={disabled}
-                            className="bg-white/90 hover:bg-white border-2 border-green-600 w-14 h-14 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
+                            className="absolute top-6 right-6 bg-white/90 hover:bg-white border-2 border-green-600 w-12 h-12 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
                             title={`Switch to ${facingMode === 'user' ? 'Back' : 'Front'} Camera`}
                         >
-                            <RotateCcw size={24} />
+                            <RefreshCw size={20} />
                         </button>
-                    </div>
+                    )}
+
+                    {/* Upload Button - Bottom Left */}
+                    <button
+                        onClick={triggerFileUpload}
+                        disabled={disabled}
+                        className="absolute bottom-6 left-6 bg-white/90 hover:bg-white border-2 border-green-600 w-14 h-14 rounded-full flex items-center justify-center text-green-800 transition-all hover:shadow-medium disabled:opacity-50 hover:scale-105"
+                        title="Upload Photo"
+                    >
+                        <Upload size={24} />
+                    </button>
+
+                    {/* Capture Button - Bottom Center */}
+                    <button
+                        onClick={capturePhoto}
+                        disabled={disabled}
+                        className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-green-600 hover:bg-green-700 border-4 border-white w-16 h-16 rounded-full flex items-center justify-center text-white transition-all hover:shadow-strong hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-strong"
+                        title="Capture Photo"
+                    >
+                        <Camera size={32} />
+                    </button>
                 </>
             )}
         </div>
